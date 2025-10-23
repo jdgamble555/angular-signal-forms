@@ -6,9 +6,12 @@ import {
   minLength,
   validate,
   submit,
-  FieldPath,
-  ValidationError,
+  Control,
+  FormValueControl,
+  customError,
 } from '@angular/forms/signals';
+
+import { Control } from '@angular/core';
 
 
 type Profile = {
@@ -24,18 +27,27 @@ type Profile = {
 
 // Define a schema for validation rules
 const profileSchema = schema<Profile>((p) => {
-  required(p.firstName, { message: 'First name is required.' });
-  required(p.lastName, { message: 'Last name is required.' });
-  required(p.username, { message: 'Username is required.' });
-  minLength(p.username, 3, { message: 'Username must be at least 3 characters.' });
 
-  // biography is optional; add a gentle min length if filled
+  required(p.firstName);
+  required(p.lastName);
+  required(p.username);
+  minLength(p.username, 3);
+  required(p.birthday);
+
+  validate(p.phoneNumber, (ctx) => {
+    const v = (ctx.value() ?? '').trim();
+    if (!v || /^\+?[0-9\s-]+$/.test(v)) return null;
+    return customError({
+      kind: 'phone',
+      message: 'Phone must contain only digits, spaces, dashes, or +',
+    });
+  });
 });
 
 
 @Component({
   selector: 'app-signal-form',
-  imports: [],
+  imports: [Control],
   templateUrl: './signal-form.html',
   styleUrl: './signal-form.css',
 })
@@ -51,5 +63,12 @@ export class SignalForm {
   });
 
   profileForm = form(this.initial, profileSchema);
+
+  onSubmit(): void {
+    submit(this.profileForm, async (f) => {
+      alert('Profile Data: ' + JSON.stringify(f().value()));
+      return null;
+    });
+  }
 
 }
