@@ -6,12 +6,9 @@ import {
   minLength,
   validate,
   submit,
-  Control,
-  FormValueControl,
   customError,
 } from '@angular/forms/signals';
-
-import { Control } from '@angular/core';
+import { Field } from '@angular/forms/signals';
 
 
 type Profile = {
@@ -47,7 +44,7 @@ const profileSchema = schema<Profile>((p) => {
 
 @Component({
   selector: 'app-signal-form',
-  imports: [Control],
+  imports: [Field],
   templateUrl: './signal-form.html',
   styleUrl: './signal-form.css',
 })
