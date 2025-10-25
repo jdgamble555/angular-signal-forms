@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, resource, signal } from '@angular/core';
 import {
   form,
   schema,
@@ -8,12 +8,55 @@ import {
   submit,
   customError,
   maxLength,
-  pattern
+  pattern,
+  validateAsync
 } from '@angular/forms/signals';
 import { Field } from '@angular/forms/signals';
 import { ShowErrors } from '../show-errors/show-errors';
+import { USERNAME_VALIDATOR } from '../username-token';
+
 
 // CUSTOM VALIDATORS
+
+export function usernameAvailable(
+  field: Parameters<typeof pattern>[0],
+  delayMs = 400,
+  opts?: { message?: string }
+) {
+
+  const checkUsername = inject(USERNAME_VALIDATOR);
+
+  return validateAsync(field, {
+    params: (ctx) => ({
+      value: ctx.value()
+    }),
+    factory: (params) => {
+      let timer: ReturnType<typeof setTimeout>;
+      return resource({
+        params,
+        loader: async (p) => {
+          const value = p.params.value;
+          clearTimeout(timer);
+          return new Promise<boolean>((resolve) => {
+            timer = setTimeout(async () => {
+              const available = await checkUsername(value);
+              resolve(available);
+            }, delayMs);
+          });
+        }
+      })
+    },
+    errors: (result) => {
+      if (!result) {
+        return {
+          kind: 'taken',
+          message: opts?.message ?? 'This username is already taken.'
+        };
+      }
+      return null;
+    }
+  });
+}
 
 export function phoneNumber(
   field: Parameters<typeof pattern>[0],
@@ -102,6 +145,9 @@ const profileSchema = schema<Profile>((p) => {
   });
   matchField(p.confirmPassword, p.password, {
     message: 'Passwords must match.'
+  });
+  usernameAvailable(p.username, 400, {
+    message: 'This username is already taken.'
   });
 });
 

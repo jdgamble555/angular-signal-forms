@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, InjectionToken } from '@angular/core';
 import {
   AbstractControl,
+  AsyncValidatorFn,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
@@ -9,8 +10,33 @@ import {
   Validators
 } from '@angular/forms';
 import { ShowErrors } from '../show-errors/show-errors';
+import { USERNAME_VALIDATOR } from '../username-token';
 
 // CUSTOM VALIDATORS
+
+export function usernameAvailableValidator(delayMs = 400): AsyncValidatorFn {
+
+  const checkUsername = inject(USERNAME_VALIDATOR);
+  let timer: ReturnType<typeof setTimeout>;
+
+  return (control: AbstractControl): Promise<ValidationErrors | null> => {
+    const value = control.value;
+    if (!value) return Promise.resolve(null);
+
+    clearTimeout(timer);
+    return new Promise((resolve) => {
+      timer = setTimeout(async () => {
+        try {
+          const available = await checkUsername(value);
+          resolve(available ? null : { taken: true });
+        } catch {
+          resolve(null);
+        }
+      }, delayMs);
+    });
+  };
+}
+
 
 export const phoneNumberValidator: ValidatorFn = (
   control: AbstractControl
@@ -77,7 +103,8 @@ export class ReactiveForm {
     },
     username: {
       required: 'Username is required.',
-      minlength: 'Username must be at least 3 characters.'
+      minlength: 'Username must be at least 3 characters.',
+      taken: 'This username is already taken.'
     },
     birthday: {
       required: 'Birthday is required.'
@@ -99,7 +126,7 @@ export class ReactiveForm {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       biograph: ['', Validators.maxLength(200)],
       phoneNumber: ['', phoneNumberValidator],
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      username: ['', [Validators.required, Validators.minLength(3)], usernameAvailableValidator()],
       birthday: ['', Validators.required],
       password: ['', [Validators.required, matchValidator('confirmPassword', true)]],
       confirmPassword: ['', [Validators.required, matchValidator('password')]]
