@@ -16,14 +16,9 @@ export const phoneNumberValidator: ValidatorFn = (
   control: AbstractControl
 ): ValidationErrors | null => {
 
-  // return Validators.pattern(/^\+?[0-9\s-]+$/)(control);
-
-  const value = control.value;
-  if (!value) return null;
-
-  const isValid = /^\+?[0-9\s-]+$/.test(value);
-
-  return isValid ? null : { phoneNumber: true };
+  return Validators.pattern(/^\+?[0-9\s-]+$/)(control)
+    ? { phoneNumber: true }
+    : null;
 };
 
 export function matchValidator(
@@ -33,7 +28,9 @@ export function matchValidator(
   return (control: AbstractControl):
     ValidationErrors | null => {
     if (control.parent && reverse) {
-      const c = (control.parent?.controls as any)[matchTo] as AbstractControl;
+      const c = (
+        control.parent?.controls as Record<string, AbstractControl>
+      )[matchTo] as AbstractControl;
       if (c) {
         c.updateValueAndValidity();
       }
@@ -42,7 +39,9 @@ export function matchValidator(
     return !!control.parent &&
       !!control.parent.value &&
       control.value ===
-      (control.parent?.controls as any)[matchTo].value
+      (
+        control.parent?.controls as Record<string, AbstractControl>
+      )[matchTo].value
       ? null
       : { matching: true };
   };
