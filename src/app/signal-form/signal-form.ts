@@ -7,25 +7,50 @@ import {
   validate,
   submit,
   customError,
-  maxLength
+  maxLength,
+  pattern
 } from '@angular/forms/signals';
 import { Field } from '@angular/forms/signals';
+import { ShowErrors } from '../show-errors/show-errors';
 
-export function phoneNumber<T>(
-  field: Parameters<typeof validate<T>>[0],
+// CUSTOM VALIDATORS
+
+export function phoneNumber(
+  field: Parameters<typeof pattern>[0],
   opts?: { message?: string }
 ) {
+  return pattern(field, /^\+?[0-9\s-]+$/, {
+    error: customError({
+      kind: 'phoneNumber',
+      message: opts?.message ?? 'Invalid phone number format.'
+    })
+  });
+}
+
+export function matchField<T>(
+  field: Parameters<typeof validate<T>>[0],
+  matchToField: Parameters<typeof validate<T>>[0],
+  opts?: {
+    message?: string;
+  }
+) {
   return validate(field, (ctx) => {
-    const v = ctx.value();
-    if (!v || typeof v !== 'string' || /^\+?[0-9\s-]+$/.test(v)) return null;
+
+    const thisVal = ctx.value();
+    const otherVal = ctx.valueOf(matchToField);
+
+    if (thisVal === otherVal) {
+      return null;
+    }
 
     return customError({
-      kind: 'phoneNumber',
-      message: opts?.message
+      kind: 'matching',
+      message: opts?.message ?? 'Values must match.'
     });
   });
 }
 
+// SCHEMA AND COMPONENT
 
 type Profile = {
   firstName: string;
@@ -38,7 +63,6 @@ type Profile = {
   confirmPassword: string;
 };
 
-// Define a schema for validation rules
 const profileSchema = schema<Profile>((p) => {
   required(p.firstName, {
     message: 'First name is required.'
@@ -76,12 +100,15 @@ const profileSchema = schema<Profile>((p) => {
   phoneNumber(p.phoneNumber, {
     message: 'Enter a valid phone number.'
   });
+  matchField(p.confirmPassword, p.password, {
+    message: 'Passwords must match.'
+  });
 });
 
 
 @Component({
   selector: 'app-signal-form',
-  imports: [Field],
+  imports: [Field, ShowErrors],
   templateUrl: './signal-form.html',
   styleUrl: './signal-form.css',
 })

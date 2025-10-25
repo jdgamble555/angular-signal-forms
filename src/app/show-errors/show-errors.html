@@ -1,0 +1,8 @@
+@let showErrors = errors();
+@if (showErrors?.length) {
+<ul class="text-red-600 text-sm list-disc list-inside">
+    @for (e of showErrors; track e) {
+    <li>{{ e }}</li>
+    }
+</ul>
+}

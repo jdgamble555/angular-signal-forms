@@ -8,11 +8,15 @@ import {
   ValidatorFn,
   Validators
 } from '@angular/forms';
+import { ShowErrors } from '../show-errors/show-errors';
 
+// CUSTOM VALIDATORS
 
 export const phoneNumberValidator: ValidatorFn = (
   control: AbstractControl
 ): ValidationErrors | null => {
+
+  // return Validators.pattern(/^\+?[0-9\s-]+$/)(control);
 
   const value = control.value;
   if (!value) return null;
@@ -22,12 +26,36 @@ export const phoneNumberValidator: ValidatorFn = (
   return isValid ? null : { phoneNumber: true };
 };
 
+export function matchValidator(
+  matchTo: string,
+  reverse?: boolean
+): ValidatorFn {
+  return (control: AbstractControl):
+    ValidationErrors | null => {
+    if (control.parent && reverse) {
+      const c = (control.parent?.controls as any)[matchTo] as AbstractControl;
+      if (c) {
+        c.updateValueAndValidity();
+      }
+      return null;
+    }
+    return !!control.parent &&
+      !!control.parent.value &&
+      control.value ===
+      (control.parent?.controls as any)[matchTo].value
+      ? null
+      : { matching: true };
+  };
+}
+
+// COMPONENT
+
 
 @Component({
   selector: 'app-reactive-form',
   templateUrl: './reactive-form.html',
   standalone: true,
-  imports: [ReactiveFormsModule]
+  imports: [ReactiveFormsModule, ShowErrors]
 })
 export class ReactiveForm {
 
@@ -56,10 +84,12 @@ export class ReactiveForm {
       required: 'Birthday is required.'
     },
     password: {
-      required: 'Password is required.'
+      required: 'Password is required.',
+      matching: 'Passwords must match.'
     },
     confirmPassword: {
-      required: 'Confirm password is required.'
+      required: 'Confirm password is required.',
+      matching: 'Passwords must match.'
     }
   };
 
@@ -72,8 +102,8 @@ export class ReactiveForm {
       phoneNumber: ['', phoneNumberValidator],
       username: ['', [Validators.required, Validators.minLength(3)]],
       birthday: ['', Validators.required],
-      password: ['', Validators.required],
-      confirmPassword: ['', Validators.required]
+      password: ['', [Validators.required, matchValidator('confirmPassword', true)]],
+      confirmPassword: ['', [Validators.required, matchValidator('password')]]
     });
   }
 

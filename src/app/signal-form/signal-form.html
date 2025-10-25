@@ -1,121 +1,56 @@
 <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-4 p-4 max-w-md mx-auto">
-  <!-- First Name -->
   <div>
     <label class="block mb-1 font-semibold">First Name</label>
     <input type="text" [field]="profileForm.firstName" class="w-full border p-2 rounded" />
-    @let firstNameErrors = getErrors('firstName');
-    @if (firstNameErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of firstNameErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('firstName')" />
   </div>
 
-  <!-- Last Name -->
   <div>
     <label class="block mb-1 font-semibold">Last Name</label>
     <input type="text" [field]="profileForm.lastName" class="w-full border p-2 rounded" />
-    @let lastNameErrors = getErrors('lastName');
-    @if (lastNameErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of lastNameErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('lastName')" />
   </div>
 
-  <!-- Biography -->
   <div>
     <label class="block mb-1 font-semibold">Biography</label>
     <textarea #bio rows="3" [field]="profileForm.biograph" class="w-full border p-2 rounded"></textarea>
-    @let biographErrors = getErrors('biograph');
-    @if (biographErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of biographErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('biograph')" />
   </div>
 
-  <!-- Phone Number -->
   <div>
     <label class="block mb-1 font-semibold">Phone Number</label>
     <input type="tel" placeholder="+1 555-123-4567" [field]="profileForm.phoneNumber"
       class="w-full border p-2 rounded" />
-    @let phoneNumberErrors = getErrors('phoneNumber');
-    @if (phoneNumberErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of phoneNumberErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('phoneNumber')" />
   </div>
 
-  <!-- Username -->
   <div>
     <label class="block mb-1 font-semibold">Username</label>
     <input type="text" [field]="profileForm.username" class="w-full border p-2 rounded" />
-    @let usernameErrors = getErrors('username');
-    @if (usernameErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of usernameErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('username')" />
   </div>
 
-  <!-- Birthday -->
   <div>
     <label class="block mb-1 font-semibold">Birthday</label>
     <input type="date" [field]="profileForm.birthday" class="w-full border p-2 rounded" />
-    @let birthdayErrors = getErrors('birthday');
-    @if (birthdayErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of birthdayErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('birthday')" />
   </div>
 
-  <!-- Password -->
   <div>
     <label class="block mb-1 font-semibold">Password</label>
     <input type="password" [field]="profileForm.password" class="w-full border p-2 rounded" />
-    @let passwordErrors = getErrors('password');
-    @if (passwordErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of passwordErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('password')" />
   </div>
 
-  <!-- Confirm Password -->
   <div>
     <label class="block mb-1 font-semibold">Confirm Password</label>
     <input type="password" [field]="profileForm.confirmPassword" class="w-full border p-2 rounded" />
-    @let confirmPasswordErrors = getErrors('confirmPassword');
-    @if (confirmPasswordErrors?.length) {
-    <ul class="text-red-600 text-sm list-disc list-inside">
-      @for (e of confirmPasswordErrors; track e) {
-      <li>{{ e }}</li>
-      }
-    </ul>
-    }
+    <app-show-errors [errors]="getErrors('confirmPassword')" />
   </div>
 
-  <!-- Submit Button -->
   <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
     [disabled]="profileForm().invalid()">
     Save Profile
   </button>
-  <p>Maxlength: {{ bio.getAttribute('maxlength') }}</p>
+  <p>HTML Form Validation: {{ bio.getAttribute('maxlength') === '200' }}</p>
 </form>
