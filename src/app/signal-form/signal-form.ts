@@ -7,8 +7,24 @@ import {
   validate,
   submit,
   customError,
+  maxLength
 } from '@angular/forms/signals';
 import { Field } from '@angular/forms/signals';
+
+export function phoneNumber<T>(
+  field: Parameters<typeof validate<T>>[0],
+  opts?: { message?: string }
+) {
+  return validate(field, (ctx) => {
+    const v = ctx.value();
+    if (!v || typeof v !== 'string' || /^\+?[0-9\s-]+$/.test(v)) return null;
+
+    return customError({
+      kind: 'phoneNumber',
+      message: opts?.message
+    });
+  });
+}
 
 
 type Profile = {
@@ -18,26 +34,47 @@ type Profile = {
   phoneNumber: string;
   username: string;
   birthday: string;
+  password: string;
+  confirmPassword: string;
 };
-
-// Reusable phone validator using a regex
 
 // Define a schema for validation rules
 const profileSchema = schema<Profile>((p) => {
-
-  required(p.firstName);
-  required(p.lastName);
-  required(p.username);
-  minLength(p.username, 3);
-  required(p.birthday);
-
-  validate(p.phoneNumber, (ctx) => {
-    const v = (ctx.value() ?? '').trim();
-    if (!v || /^\+?[0-9\s-]+$/.test(v)) return null;
-    return customError({
-      kind: 'phone',
-      message: 'Phone must contain only digits, spaces, dashes, or +',
-    });
+  required(p.firstName, {
+    message: 'First name is required.'
+  });
+  minLength(p.firstName, 2, {
+    message: 'First name must be at least 2 characters.'
+  });
+  required(p.lastName, {
+    message: 'Last name is required.'
+  });
+  minLength(p.lastName, 2, {
+    message: 'Last name must be at least 2 characters.'
+  });
+  maxLength(p.biograph, 200, {
+    message: 'Biography cannot exceed 200 characters.'
+  });
+  required(p.username, {
+    message: 'Username is required.'
+  });
+  minLength(p.username, 3, {
+    message: 'Username must be at least 3 characters.'
+  });
+  required(p.birthday, {
+    message: 'Birthday is required.'
+  });
+  required(p.phoneNumber, {
+    message: 'Phone number is required.'
+  });
+  required(p.password, {
+    message: 'Password is required.'
+  });
+  required(p.confirmPassword, {
+    message: 'Confirm password is required.'
+  });
+  phoneNumber(p.phoneNumber, {
+    message: 'Enter a valid phone number.'
   });
 });
 
@@ -57,6 +94,8 @@ export class SignalForm {
     phoneNumber: '',
     username: '',
     birthday: '',
+    password: '',
+    confirmPassword: ''
   });
 
   profileForm = form(this.initial, profileSchema);
@@ -66,6 +105,23 @@ export class SignalForm {
       alert('Profile Data: ' + JSON.stringify(f().value()));
       return null;
     });
+  }
+
+  getErrors(controlName: keyof typeof this.profileForm): string[] {
+
+    const field = this.profileForm[controlName];
+
+    const state = field();
+
+    // Only show errors after user interaction
+    if (!state.touched() && !state.dirty()) return [];
+
+    const errors = state.errors();
+    if (!errors) return [];
+
+    return errors
+      .map(err => err.message ?? err.kind ?? 'Invalid')
+      .filter(Boolean);
   }
 
 }
